@@ -1,0 +1,13 @@
+---
+# Ansible vars
+python3_interpreter_path: /usr/bin/python3
+
+# boto3 configuration
+boto3_version: 1.14.11
+
+# aws configuration
+awscli_version: 1.18.86
+aws_path: /usr/local/bin/aws
+
+# pexpect configuration
+pexpect_version: 4.8.0

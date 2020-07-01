@@ -1,0 +1,51 @@
+---
+- name: Set up tasks needed to run ansible inside a gitlab runner on centos7
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Ensure openssh is installed so we can use ssh.
+      yum:
+        name: openssh-clients
+        state: present
+
+    - name: Ensure python and pip3 are installed.
+      yum:
+        name: python3-pip
+        state: present
+
+    - name: Ensure AWS CLI is installed.
+      pip:
+        name: awscli
+        version: "{{ awscli_version }}"
+        executable: pip3
+
+    - name: Ensure boto3 is installed.
+      pip:
+        name: boto3
+        version: "{{ boto3_version }}"
+        extra_args: --user
+
+    - name: Ensure pexpect is installed so we can fill out aws configure.
+      pip:
+        name: pexpect
+        version: "{{ pexpect_version }}"
+        executable: pip3
+
+    - name: Configure aws configure so we can connect to aws.
+      expect:
+        command: "{{ aws_path }} configure"
+        responses:
+          AWS Access Key ID: "{{ ACCESS_KEY}}"
+          AWS Secret Access Key: "{{ SECRET_KEY }}"
+          Default region name: "{{ AWS_REGION }}"
+          Default output format: json
+      vars:
+        ansible_python_interpreter: "{{ python3_interpreter_path }}"
+
+    - name: Download requirements.yml file from s3.
+      command: "{{ aws_path }} s3 cp s3://{{ S3_REQ_YML_KEY_PATH }} . "
+
+    - name: Configure requirements.yml to pull in the roles needed
+      command: ansible-galaxy install -r requirements.yml
+      vars:
+        ansible_python_interpreter: "{{ python3_interpreter_path }}"
